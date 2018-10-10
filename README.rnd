@@ -1,10 +1,37 @@
 ###########################################################################
  This is readme.rnd file 
- ldbslovis@onycom.com created 20181008
+ ldbslovis@onycom.com created 20181010
  ankus_analyzer_P 
  http://openankus.com
  http://onycom.com
  ONYCOM INC.
+###########################################################################
+relation opensource software(and library) list and include license
+
+ Apache Commons BeanUtils     https://commons.apache.org/proper/commons-beanutils/    Apache License 2.0
+ Apache Commons Codec         http://commons.apache.org/proper/commons-codec/         Apache License 2.0
+ Apache Commons Collections   http://commons.apache.org/proper/commons-collections/   Apache License 2.0
+ Apache HttpClient            http://hc.apache.org/httpcomponents-client              Apache License 2.0
+ Apache HttpCore              http://hc.apache.org/httpcomponents-core-ga             Apache License 2.0
+ Apache Log4j                 https://logging.apache.org/log4j/2.x/                   Apache License 2.0
+ Apache Tomcat                https://tomcat.apache.org/                              Apache License 2.0
+ Bean Validation API          http://beanvalidation.org                               Apache License 2.0
+ ClassMate                    http://github.com/cowtowncoder/java-classmate           Apache License 2.0
+ Hibernate Validator          http://hibernate.org/validator/                         Apache License 2.0
+ Jackson Annotations          https://github.com/FasterXML/jackson-annotations        Apache License 2.0
+ Jackson Core                 https://github.com/FasterXML/jackson-core               Apache License 2.0
+ Jackson Databind             https://github.com/FasterXML/jackson-databind           Apache License 2.0
+ JBoss Logging 3              http://www.jboss.org                                    Apache License 2.0
+ JCL Over SLF4J               http://www.slf4j.org                                    MIT License 
+ JUL to SLF4J Bridge          http://www.slf4j.org                                    MIT License 
+ JUnit3                       http://junit.org                                        CPL 1.0
+ Log4j Over SLF4J             http://www.slf4j.org                                    Apache License 2.0
+ Logback Classic Module       https://logback.qos.ch/                                 EPL 1.0, LGPL 2.1
+ Logback Core Module          https://logback.qos.ch/                                 EPL 1.0, LGPL 2.1
+ OpenPaas Service java Broker https://github.com/PaaS-TA/OPENPAAS-SERVICE-JAVA-BROKER Apache License 2.0
+ SLF4J API Module             http://www.slf4j.org                                    MIT License 
+ SnakeYAML                    http://www.snakeyaml.org                                Apache License 2.0
+ Spring Framework             http://projects.spring.io/spring-framework              Apache License 2.0
 ###########################################################################
 iclude license
                                  Apache License
