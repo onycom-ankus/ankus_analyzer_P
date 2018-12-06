@@ -9,6 +9,6 @@ public class Kakfa_Manager_Test
 		TopicManager manager = new TopicManager();
 		List<String> topics  = manager.getTopicList();
 		System.out.println(topics);
-		manager.createTopic("/brokers/topics/ChamberMonitor");
+//		manager.createTopic("/brokers/topics/ChamberMonitor");
 	}
 }

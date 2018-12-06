@@ -15,10 +15,15 @@
 
 package com.onycom.ankus4paas;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication; 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.scheduling.annotation.EnableScheduling; 
+import org.springframework.scheduling.annotation.EnableScheduling;
+
+import com.onycom.AppRunner.NotificationConsumerThread;
+import com.onycom.AppRunner.UserScheduler; 
 @SpringBootApplication 
 @ComponentScan
 @EnableScheduling
@@ -27,4 +32,9 @@ public class Application {
 	{
 		SpringApplication.run(Application.class, args); 
 	} 
+	
+//	@Bean
+//	UserScheduler userScheduler() {
+//		return new UserScheduler();
+//	}
 }
