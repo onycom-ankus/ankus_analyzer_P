@@ -67,8 +67,8 @@ public class UserScheduler {
         		String topic = topicStatus.getKey();
         		topicAtiveHash.put(topic, 1);
         		
-        		String brokers = "220.70.26.205:9092";
-    			String groupId = "ankus-analyzer";
+        		String brokers = "localhost:9092";
+    			String groupId = "ankus-analyzer-p";
     			int numberOfConsumer = 3; 
     			// Start group of Notification Consumers
     			NotificationConsumerGroup consumerGroup = new NotificationConsumerGroup(brokers, groupId, topic, numberOfConsumer);

@@ -1,6 +1,9 @@
 package com.onycom.dataManager;
 
 import java.util.HashMap;
+import java.util.List;
+
+import org.apache.commons.lang3.tuple.Pair;
 
 public class MethodParm {
 	private String appkey;
@@ -18,11 +21,11 @@ public class MethodParm {
 	public void setMethod(String method) {
 		this.method = method;
 	}
-	public HashMap<String, String> getMethod_param() {
+	public List<Pair<String, String>>  getMethod_param() {
 		return method_param;
 	}
-	public void setMethod_param(HashMap<String, String> method_param) {
+	public void setMethod_param(List<Pair<String, String>>  method_param) {
 		this.method_param = method_param;
 	}
-	private HashMap<String, String>  method_param;
+	private List<Pair<String, String>>  method_param;
 }

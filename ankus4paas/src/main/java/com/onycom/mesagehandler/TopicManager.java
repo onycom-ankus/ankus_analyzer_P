@@ -21,7 +21,7 @@ public class TopicManager {
 		ZooKeeper zk = null;
 		List<String> topics = null;
 		try {
-			zk = new ZooKeeper("220.70.26.205:2181", 10000,  null);
+			zk = new ZooKeeper("localhost:2181", 10000,  null);
 			topics = zk.getChildren("/brokers/topics", false);
 		
 		}
@@ -36,7 +36,7 @@ public class TopicManager {
 	public void createTopic(String TopicName)throws Exception {
 		
 		ankusZKConnect connector = new ankusZKConnect();
-		ZooKeeper zk = connector.connect("220.70.26.205:2181");
+		ZooKeeper zk = connector.connect("localhost:2181");
 		String newNode = TopicName;
         connector.createNode(newNode, new Date().toString().getBytes());
 	}

@@ -50,7 +50,7 @@ public class HdfsHandler {
 		}
 		
 		Properties props = new Properties();
-		props.put("metadata.broker.list", "220.70.26.205:9092");
+		props.put("metadata.broker.list", "localhost:9092");
 		props.put("serializer.class", "kafka.serializer.StringEncoder");
 		ProducerConfig producerConfig = new ProducerConfig(props);
 		Producer<String, byte[]> producer = new Producer<String, byte[]>(producerConfig);

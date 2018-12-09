@@ -23,7 +23,9 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import com.onycom.AppRunner.NotificationConsumerThread;
-import com.onycom.AppRunner.UserScheduler; 
+import com.onycom.AppRunner.UserScheduler;
+import com.onycom.dataManager.ProcessManager;
+import com.onycom.mesagehandler.ConsummerProper; 
 @SpringBootApplication 
 @ComponentScan
 @EnableScheduling
@@ -33,8 +35,19 @@ public class Application {
 		SpringApplication.run(Application.class, args); 
 	} 
 	
+	@Bean
+	ProcessManager processManager() {
+		return new ProcessManager();
+	}
+	
+//	@Bean
+//	ConsummerProper consummerProper() {
+//		return new ConsummerProper();
+//	}
+	
 //	@Bean
 //	UserScheduler userScheduler() {
 //		return new UserScheduler();
 //	}
+
 }

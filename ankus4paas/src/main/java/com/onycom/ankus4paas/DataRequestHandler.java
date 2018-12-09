@@ -8,6 +8,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.bson.Document;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,11 +41,13 @@ public class DataRequestHandler  extends Configured {
 		return hdfs.getHdfsDir(path, appkey);
 	}
 	
-	@RequestMapping(value = "getML/param={param}", method=RequestMethod.POST)
-	public int getML(@PathVariable("param") String param) {
+	
+	@RequestMapping(value = "getML/", method = RequestMethod.POST)
+	public int getML(@RequestBody MethodParm requestWrapper ) {
 		
 		int rtn = 0;
-		String topicName = param;
+		String topicName = "";
+		String param = "";
 		TopicManager manager = new TopicManager();	
 		try {
 			manager.createTopic("MLREQUEST");
@@ -58,7 +61,7 @@ public class DataRequestHandler  extends Configured {
 				
 		String topicMessage = "";
 		Properties props = new Properties();
-		props.put("metadata.broker.list", "220.70.26.205:9092");
+		props.put("metadata.broker.list", "localhost:9092");
 		props.put("serializer.class", "kafka.serializer.StringEncoder");
 		
 		ProducerConfig producerConfig = new ProducerConfig(props);
