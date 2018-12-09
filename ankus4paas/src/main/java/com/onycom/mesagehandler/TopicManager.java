@@ -38,6 +38,6 @@ public class TopicManager {
 		ankusZKConnect connector = new ankusZKConnect();
 		ZooKeeper zk = connector.connect("localhost:2181");
 		String newNode = TopicName;
-        connector.createNode(newNode, new Date().toString().getBytes());
+		connector.createNode("/brokers/topics/"+newNode, new Date().toString().getBytes());
 	}
 }

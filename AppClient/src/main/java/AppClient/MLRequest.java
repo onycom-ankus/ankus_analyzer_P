@@ -15,9 +15,9 @@ public class MLRequest {
 
 		try{
 			Gson gson = new Gson();
-			MethodParm mParam = new MethodParm();
-			mParam.setAppkey("123456789");
-			mParam.setMethod("svm");
+			ProcessProperty mParam = new ProcessProperty();
+//			mParam.setAppkey("123456789");
+//			mParam.setMethod("svm");
 			
 //			HashMap<String, String> method_param = new HashMap<String, String>();
 //			method_param.put("var1", "1");

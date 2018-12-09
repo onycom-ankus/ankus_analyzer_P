@@ -1,6 +1,9 @@
 package com.onycom.dataManager;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -21,10 +24,16 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.onycom.mesagehandler.ConsummerProper;
+import com.onycom.mesagehandler.ProducerProper;
 import com.onycom.mesagehandler.TopicManager;
 
 import kafka.javaapi.producer.Producer;
+import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -40,6 +49,8 @@ public class ProcessManager {
 	
 	private ThreadPoolTaskScheduler scheduler;
 	ConsummerProper consummerProper;
+	KafkaConsumer<String, String> consumer ;
+	
 	public ProcessManager() {
 		consummerProper = new ConsummerProper();
 		startScheduler();
@@ -68,8 +79,8 @@ public class ProcessManager {
     
 	@SuppressWarnings("deprecation")
 	public void Process() {
+		consumer = consummerProper.getConsumer();
 		
-		KafkaConsumer<String, String> consumer = consummerProper.getConsumer();
 		consumer.subscribe(Arrays.asList("MLREQUEST"));
 		
 		while (true) {
@@ -78,35 +89,38 @@ public class ProcessManager {
 		      switch (record.topic()) {
 		        case "MLREQUEST":
 		        	Gson gson = new Gson();
-		        	
-		        	System.out.println("KEY:"+record.key());
-		        	System.out.println("VALUE:"+ record.value());
-		        	System.out.println(record.toString());
-		        	
-		        	MethodParm mParam = new MethodParm();
-		        	mParam = gson.fromJson(record.value(), MethodParm.class);
-		        	String method = mParam.getMethod();
-		        	switch(method) {
-		        	case "sh":
-		        		List<Pair<String, String>> methodParamList = mParam.getMethod_param();
-		        		for(Pair<String, String> methodParam :methodParamList) {
-			        		String mName = methodParam.getLeft();
-			        		String mValue = methodParam.getLeft();
-			        		
-			        		List<String> commandList = new ArrayList<String>();
-			        		commandList.add("sh");
-			        		commandList.add(mName);
-			        		commandList.add(mValue);
-			        		String[] cmdListString = commandList.toArray(new String[commandList.size()]);
-			        		try {
-								byCommonsExec(cmdListString);
-							} catch (Exception e) {
-								e.toString();
-							}
-		        		}
-		        	}
-		        	
-		        	break;
+		        	String strInjson = record.value();
+		        	JsonParser parser = new JsonParser();
+		    		JsonElement element = parser.parse(strInjson);
+		    		
+		    		String appkey = element.getAsJsonObject().get("appkey").getAsString();
+		    		String newTopicName = "MLREQUEST_"+appkey;
+		    		
+		    		
+		    		String packageName = element.getAsJsonObject().get("packageName").getAsString();
+		    		switch(packageName) {
+			    		case "sh":
+			    			JsonArray jsonFunParamList = element.getAsJsonObject().get("functionParam").getAsJsonArray();
+				    		for(JsonElement jsunFunParam: jsonFunParamList) {
+				    			JsonObject argument = jsunFunParam.getAsJsonObject();
+				    			String key = argument.get("left").toString().replaceAll("\"", "");
+				    			String value = argument.get("right").toString().replaceAll("\"", "");
+				    			System.out.println(key);
+				    			System.out.println(value);
+				    			List<String> listCommand = new ArrayList<String>();
+				    			listCommand.add(key);
+				    			listCommand.add(value);
+				    			String[] command = listCommand.toArray(new String[0]);
+				    			try {
+				    				System.out.println("cmd:" + listCommand.toString());
+				    				byCommonsExec(newTopicName, command);
+				    			} catch(Exception e) {
+				    				System.out.println(e.toString());
+				    			}
+				    			
+				    		}	
+		    		}
+		    		break;
 		        default:
 		        	throw new IllegalStateException("get message on topic " + record.topic());
 		      }
@@ -114,13 +128,41 @@ public class ProcessManager {
 		}
 	}
 	
-	public void byCommonsExec(String[] command)  
+	@SuppressWarnings("deprecation")
+	public void byCommonsExec(String topic, String[] command)  
 			throws IOException,InterruptedException {
-		DefaultExecutor executor = new DefaultExecutor();
-		CommandLine cmdLine = CommandLine.parse(command[0]);
-		for (int i=1, n=command.length ; i<n ; i++ ) {
-			cmdLine.addArgument(command[i]);
+		ProcessBuilder pb = new ProcessBuilder(command);
+		try
+		{
+			try {
+	    		TopicManager manager = new TopicManager();
+	    		manager.createTopic(topic);
+    		} catch(Exception e) {
+    			System.out.println(e.toString());
+    		}
+			Properties props = new Properties();
+			props.put("metadata.broker.list", "127.0.0.1:9092");
+			props.put("serializer.class", "kafka.serializer.StringEncoder");
+			ProducerConfig producerConfig = new ProducerConfig(props);
+			Producer<String, String> producer = new Producer<String, String>(producerConfig);
+			KeyedMessage<String, String> message = new KeyedMessage<String, String>(topic, topic+"_rtn");
+			producer.send(message);
+			
+			Process process = pb.start();//실행
+			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			StringBuilder builder = new StringBuilder();
+			String line = null;
+			while ( (line = reader.readLine()) != null) {
+				builder.append(line);
+				builder.append(System.getProperty("line.separator"));
+			}
+			String result = builder.toString();
+			System.out.println(result);
+			
+			producer.close();
 		}
-		executor.execute(cmdLine);
+		catch(Exception e) {
+			System.out.println(e.toString());
+		}
 	}
 }

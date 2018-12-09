@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.google.gson.Gson;
 import com.onycom.dataManager.HdfsHandler;
-import com.onycom.dataManager.MethodParm;
+import com.onycom.dataManager.ProcessProperty;
 import com.onycom.mesagehandler.TopicManager;
 
 import java.net.URI;
@@ -43,7 +43,7 @@ public class DataRequestHandler  extends Configured {
 	
 	
 	@RequestMapping(value = "getML/", method = RequestMethod.POST)
-	public int getML(@RequestBody MethodParm requestWrapper ) {
+	public int getML(@RequestBody ProcessProperty requestWrapper ) {
 		
 		int rtn = 0;
 		String topicName = "";
@@ -57,7 +57,7 @@ public class DataRequestHandler  extends Configured {
 		}
 		
 		Gson gson = new Gson();
-		MethodParm mParam = gson.fromJson(param, MethodParm.class);
+		ProcessProperty mParam = gson.fromJson(param, ProcessProperty.class);
 				
 		String topicMessage = "";
 		Properties props = new Properties();
