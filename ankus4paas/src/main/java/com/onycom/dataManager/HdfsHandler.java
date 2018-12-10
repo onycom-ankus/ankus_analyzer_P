@@ -8,14 +8,15 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
+import org.apache.kafka.clients.producer.Callback;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.bson.Document;
 
 import com.onycom.mesagehandler.TopicManager;
 
 import java.util.Properties;
-import kafka.javaapi.producer.Producer;
-import kafka.producer.KeyedMessage;
-import kafka.producer.ProducerConfig;
 public class HdfsHandler {
 	
 	public String getHdfsDir(String path, String appkey) {
@@ -36,6 +37,18 @@ public class HdfsHandler {
         }
 		return directory.toJson().toString();
 	}
+	private static Properties createProducerConfig(String brokers) {
+		Properties props = new Properties();
+		props.put("bootstrap.servers", brokers);
+		props.put("acks", "all");
+		props.put("retries", 0);
+		props.put("batch.size", 16384);
+		props.put("linger.ms", 1);
+		props.put("buffer.memory", 33554432);
+		props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+		props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+		return props;
+	}
 	
 	/* requestTopic + path로 토픽을 만들어
 	 * path안의 내용을 바이터 배열로 프로듀싱 함..
@@ -49,12 +62,8 @@ public class HdfsHandler {
 			System.out.println(e.toString());
 		}
 		
-		Properties props = new Properties();
-		props.put("metadata.broker.list", "localhost:9092");
-		props.put("serializer.class", "kafka.serializer.StringEncoder");
-		ProducerConfig producerConfig = new ProducerConfig(props);
-		Producer<String, byte[]> producer = new Producer<String, byte[]>(producerConfig);
-		
+		Properties props = createProducerConfig(requestTopic + "_"+ path);
+		KafkaProducer<String, byte[]> producer = new KafkaProducer<String, byte[]>(props);
 		Configuration conf = new Configuration();
 
 		try {
@@ -67,10 +76,20 @@ public class HdfsHandler {
 			in = fs.open(new Path(uri));
 			in.read(buffer);
 			while (in.read(buffer) > 0) {
-				KeyedMessage<String, byte[]> message = new KeyedMessage<String, byte[]>(requestTopic + "_"+ path, buffer); 
-				producer.send(message);
+//				KeyedMessage<String, byte[]> message = new KeyedMessage<String, byte[]>(requestTopic + "_"+ path, buffer); 
+				producer.send(new ProducerRecord<String, byte[]>(requestTopic + "_"+ path, buffer), new Callback() {
+			        public void onCompletion(RecordMetadata metadata, Exception e) {
+			          if (e != null) {
+			            e.printStackTrace();
+			          }
+			          System.out.println("Sent:" + buffer + ", Partition: " + metadata.partition() + ", Offset: "
+			              + metadata.offset());
+			        }
+			      });
 				
 			}
+			
+			producer.close();
 		} catch(Exception e) {
 
 		}

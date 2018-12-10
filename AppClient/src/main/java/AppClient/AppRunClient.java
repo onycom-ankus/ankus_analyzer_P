@@ -30,7 +30,6 @@ public class AppRunClient {
 		String packageName = "sh";
 		
 		List<String> topics  = manager.getTopicList();
-		System.out.println(topics);
 		Properties props = new Properties();
 		props.put("metadata.broker.list", "127.0.0.1:9092");
 		props.put("serializer.class", "kafka.serializer.StringEncoder");

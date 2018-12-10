@@ -4,10 +4,6 @@ import java.util.Properties;
 
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 
-import kafka.consumer.Consumer;
-import kafka.consumer.ConsumerConfig;
-import kafka.javaapi.consumer.ConsumerConnector;
-
 public class ConsummerProper {
 	
 	KafkaConsumer<String, String> consumer;

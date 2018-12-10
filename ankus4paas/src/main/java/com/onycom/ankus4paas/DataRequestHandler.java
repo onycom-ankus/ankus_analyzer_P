@@ -24,10 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 
-import kafka.javaapi.producer.Producer;
-import kafka.producer.KeyedMessage;
-import kafka.producer.ProducerConfig;
-
 
 @RestController
 public class DataRequestHandler  extends Configured {
@@ -46,36 +42,36 @@ public class DataRequestHandler  extends Configured {
 	public int getML(@RequestBody ProcessProperty requestWrapper ) {
 		
 		int rtn = 0;
-		String topicName = "";
-		String param = "";
-		TopicManager manager = new TopicManager();	
-		try {
-			manager.createTopic("MLREQUEST");
-		}
-		catch (Exception e) {
-			System.out.println(e.toString());
-		}
-		
-		Gson gson = new Gson();
-		ProcessProperty mParam = gson.fromJson(param, ProcessProperty.class);
-				
-		String topicMessage = "";
-		Properties props = new Properties();
-		props.put("metadata.broker.list", "localhost:9092");
-		props.put("serializer.class", "kafka.serializer.StringEncoder");
-		
-		ProducerConfig producerConfig = new ProducerConfig(props);
-		
-		Producer<String, String> producer = new Producer<String, String>(producerConfig);
-		KeyedMessage<String, String> message = new KeyedMessage<String, String>(topicName, mParam.toString());
-		
-		try {
-			producer.send(message);
-		}
-		catch (Exception e) {
-			System.out.println(e.toString());
-		}
-		producer.close();
+//		String topicName = "";
+//		String param = "";
+//		TopicManager manager = new TopicManager();	
+//		try {
+//			manager.createTopic("MLREQUEST");
+//		}
+//		catch (Exception e) {
+//			System.out.println(e.toString());
+//		}
+//		
+//		Gson gson = new Gson();
+//		ProcessProperty mParam = gson.fromJson(param, ProcessProperty.class);
+//				
+//		String topicMessage = "";
+//		Properties props = new Properties();
+//		props.put("metadata.broker.list", "localhost:9092");
+//		props.put("serializer.class", "kafka.serializer.StringEncoder");
+//		
+//		ProducerConfig producerConfig = new ProducerConfig(props);
+//		
+//		Producer<String, String> producer = new Producer<String, String>(producerConfig);
+//		KeyedMessage<String, String> message = new KeyedMessage<String, String>(topicName, mParam.toString());
+//		
+//		try {
+//			producer.send(message);
+//		}
+//		catch (Exception e) {
+//			System.out.println(e.toString());
+//		}
+//		producer.close();
 		return rtn;
 	}
 }

@@ -18,6 +18,10 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -32,25 +36,18 @@ import com.onycom.mesagehandler.ConsummerProper;
 import com.onycom.mesagehandler.ProducerProper;
 import com.onycom.mesagehandler.TopicManager;
 
-import kafka.javaapi.producer.Producer;
-import kafka.producer.KeyedMessage;
-import kafka.producer.ProducerConfig;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import kafka.consumer.Consumer;
-import kafka.consumer.ConsumerConfig;
-import kafka.consumer.KafkaStream;
-import kafka.javaapi.consumer.ConsumerConnector;
-import kafka.message.MessageAndMetadata;
-
+import org.apache.kafka.clients.producer.Callback;
 public class ProcessManager {
 	
 	private ThreadPoolTaskScheduler scheduler;
 	ConsummerProper consummerProper;
 	KafkaConsumer<String, String> consumer ;
 	
+	@SuppressWarnings("deprecation")
 	public ProcessManager() {
 		consummerProper = new ConsummerProper();
 		startScheduler();
@@ -79,11 +76,15 @@ public class ProcessManager {
     
 	@SuppressWarnings("deprecation")
 	public void Process() {
-		consumer = consummerProper.getConsumer();
-		
-		consumer.subscribe(Arrays.asList("MLREQUEST"));
+//		List<String> listCommand = new ArrayList<String>();
+//		listCommand.add("echo");
+//		listCommand.add("test");
+//		String[] command = listCommand.toArray(new String[0]);		
+//		byCommonsExec("MLREQUEST_"+ "1234", command);
 		
 		while (true) {
+			consumer = consummerProper.getConsumer();
+			consumer.subscribe(Arrays.asList("MLREQUEST"));
 		    ConsumerRecords<String, String> records = consumer.poll(500);
 		    for (ConsumerRecord<String, String> record : records) {
 		      switch (record.topic()) {
@@ -94,8 +95,7 @@ public class ProcessManager {
 		    		JsonElement element = parser.parse(strInjson);
 		    		
 		    		String appkey = element.getAsJsonObject().get("appkey").getAsString();
-		    		String newTopicName = "MLREQUEST_"+appkey;
-		    		
+		    		String newTopicName = "MLREQUEST_"+appkey;	    		
 		    		
 		    		String packageName = element.getAsJsonObject().get("packageName").getAsString();
 		    		switch(packageName) {
@@ -127,26 +127,33 @@ public class ProcessManager {
 		    }
 		}
 	}
-	
+	private Properties createProducerConfig(String brokers) {
+		Properties props = new Properties();
+		props.put("bootstrap.servers", brokers);
+		props.put("acks", "all");
+		props.put("retries", 10);
+//		props.put("metadata.broker.list", brokers);
+		props.put("batch.size", 16384);
+		props.put("linger.ms", 1);
+		props.put("buffer.memory", 33554432);
+		props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+		props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+		return props;
+	}
 	@SuppressWarnings("deprecation")
-	public void byCommonsExec(String topic, String[] command)  
-			throws IOException,InterruptedException {
+	public void byCommonsExec(String topic, String[] command) {
 		ProcessBuilder pb = new ProcessBuilder(command);
 		try
 		{
-			try {
-	    		TopicManager manager = new TopicManager();
-	    		manager.createTopic(topic);
-    		} catch(Exception e) {
-    			System.out.println(e.toString());
-    		}
-			Properties props = new Properties();
-			props.put("metadata.broker.list", "127.0.0.1:9092");
-			props.put("serializer.class", "kafka.serializer.StringEncoder");
-			ProducerConfig producerConfig = new ProducerConfig(props);
-			Producer<String, String> producer = new Producer<String, String>(producerConfig);
-			KeyedMessage<String, String> message = new KeyedMessage<String, String>(topic, topic+"_rtn");
-			producer.send(message);
+			TopicManager manager = new TopicManager();
+			manager.createTopic(topic);
+			
+//			Properties props = new Properties();
+//			props.put("metadata.broker.list", "127.0.0.1:9092");
+//			props.put("serializer.class", "kafka.serializer.StringEncoder");
+//			ProducerConfig producerConfig = new ProducerConfig(props);
+//			Producer<String, String> producer = new Producer<String, String>(producerConfig);
+//			KeyedMessage<String, String> message = new KeyedMessage<String, String>(topic, topic+"_rtn");
 			
 			Process process = pb.start();//실행
 			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -157,9 +164,21 @@ public class ProcessManager {
 				builder.append(System.getProperty("line.separator"));
 			}
 			String result = builder.toString();
-			System.out.println(result);
+			System.out.println(topic +":"+ result);
 			
+			Properties props = createProducerConfig("127.0.0.1:9092");
+			KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
+			producer.send(new ProducerRecord<String, String>(topic, result), new Callback() {
+		        public void onCompletion(RecordMetadata metadata, Exception e) {
+		          if (e != null) {
+		            e.printStackTrace();
+		          }
+		          System.out.println("Sent:" + result + ", Partition: " + metadata.partition() + ", Offset: "
+		              + metadata.offset());
+		        }
+		      });
 			producer.close();
+
 		}
 		catch(Exception e) {
 			System.out.println(e.toString());
