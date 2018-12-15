@@ -1,9 +1,11 @@
 package AppClient;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -17,30 +19,40 @@ import com.google.gson.JsonParser;
 import com.onycom.mesagehandler.TopicManager;
 
 import java.util.Properties;
-import kafka.javaapi.producer.Producer;
-import kafka.producer.KeyedMessage;
-import kafka.producer.ProducerConfig;
+
+import org.apache.kafka.clients.producer.Callback;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 public class AppRunClient {
+	private static Properties createProducerConfig(String brokers) {
+		Properties props = new Properties();
+		props.put("bootstrap.servers", brokers);
+		props.put("acks", "all");
+		props.put("retries", 10);
+		props.put("batch.size", 16384);
+		props.put("linger.ms", 1);
+		props.put("buffer.memory", 33554432);
+		props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+		props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+		return props;
+	}
 	public static void main(String[] args) throws Exception {
+		String packageName = "sh";
 		TopicManager manager = new TopicManager();
 		manager.createTopic("MLREQUEST");
-		
-		String packageName = "sh";
-		
-		List<String> topics  = manager.getTopicList();
-		Properties props = new Properties();
-		props.put("metadata.broker.list", "127.0.0.1:9092");
-		props.put("serializer.class", "kafka.serializer.StringEncoder");
-		ProducerConfig producerConfig = new ProducerConfig(props);
-		Producer<String, String> producer = new Producer<String, String>(producerConfig);
-
+		manager.deleteTopic("MLREQUEST_123456789_RTN");
+		manager.deleteTopic("MLREQUEST_123456789");
+		Properties props = createProducerConfig("localhost:9092");
+		KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
 		Gson gson = new Gson();
 		ProcessProperty mParam = new ProcessProperty();
 		mParam.setAppkey("123456789");
 		mParam.setPackageName(packageName);
-		
+
 		List<Pair> functionParam = new ArrayList<>();
 		functionParam.add(new MutablePair<>("/bin/echo", "ankus_echo test"));
 		String functionParmStr =gson.toJson(functionParam);
@@ -48,30 +60,43 @@ public class AppRunClient {
 		mParam.setFunctionParam(functionParam);
 		String json = gson.toJson(mParam);
 		
-		KeyedMessage<String, String> message = new KeyedMessage<String, String>("MLREQUEST",gson.toJson(mParam));
+		
 		try {
-			producer.send(message);
+			producer.send(new ProducerRecord<String, String>("MLREQUEST", json), new Callback() {
+				public void onCompletion(RecordMetadata metadata, Exception e) {
+					if (e != null) {
+						e.printStackTrace();
+					}
+					System.out.println("Sent:" + json + ", Partition: " + metadata.partition() + ", Offset: "
+							+ metadata.offset());
+				}
+			});
 		}
 		catch (Exception e) {
 			System.out.println(e.toString());
 		}
 		producer.close();
 		
-		Properties configs = new Properties();
-		configs.put("bootstrap.servers", "localhost:9092");
-		configs.put("session.timeout.ms", "10000");
-		configs.put("group.id", "ankus-analzer-p");
+		ConsummerProper consummerProper;
+		KafkaConsumer<String, String> consumer ;
+		consummerProper = new ConsummerProper();
 		
-		configs.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-		configs.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-		KafkaConsumer<String, String> consumer = new KafkaConsumer<>(configs);
-		ConsumerRecords<String, String> records = consumer.poll(500);
-	    for (ConsumerRecord<String, String> record : records) {
-	      switch (record.topic()) {
-	        case "MLREQUEST"+"123456789":
-	        	String strInjson = record.value();
-	        	System.out.println(strInjson);
-	      }
-	    }
+		consumer = consummerProper.getConsumer();
+		consumer.subscribe(Arrays.asList("MLREQUEST_123456789_RTN"));
+		try {
+			while(true) {
+				ConsumerRecords<String, String> records = consumer.poll(500);
+				for (ConsumerRecord<String, String> record : records) {
+					switch (record.topic()) {
+					case "MLREQUEST_"+"123456789_RTN":
+						String strInjson = record.value();
+						System.out.println(strInjson);
+						break;
+					}
+				}
+			}
+		} finally {
+			consumer.close();
+		}
 	}
 }

@@ -24,14 +24,18 @@ public class TopicManager {
         }
         return topics;
 	}
-	/*
-	 * Please update zookeeper address and port
-	 */
+
 	public void createTopic(String TopicName)throws Exception {
-		
 		ankusZKConnect connector = new ankusZKConnect();
 		ZooKeeper zk = connector.connect("localhost:2181");
 		String newNode = TopicName;
-        connector.createNode("/brokers/topics/"+newNode, new Date().toString().getBytes());
+		connector.createNode("/brokers/topics/"+newNode, new Date().toString().getBytes());
+	}
+	
+	public void deleteTopic(String TopicName)throws Exception {
+		ankusZKConnect connector = new ankusZKConnect();
+		ZooKeeper zk = connector.connect("localhost:2181");
+		String newNode = TopicName;
+		connector.deleteNode("/brokers/topics/"+newNode);
 	}
 }

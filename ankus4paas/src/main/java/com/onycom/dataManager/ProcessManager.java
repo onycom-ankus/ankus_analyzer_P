@@ -76,12 +76,6 @@ public class ProcessManager {
     
 	@SuppressWarnings("deprecation")
 	public void Process() {
-//		List<String> listCommand = new ArrayList<String>();
-//		listCommand.add("echo");
-//		listCommand.add("test");
-//		String[] command = listCommand.toArray(new String[0]);		
-//		byCommonsExec("MLREQUEST_"+ "1234", command);
-		
 		while (true) {
 			consumer = consummerProper.getConsumer();
 			consumer.subscribe(Arrays.asList("MLREQUEST"));
@@ -109,6 +103,7 @@ public class ProcessManager {
 				    			System.out.println(value);
 				    			List<String> listCommand = new ArrayList<String>();
 				    			listCommand.add(key);
+				    			if (value.length() > 0)
 				    			listCommand.add(value);
 				    			String[] command = listCommand.toArray(new String[0]);
 				    			try {
@@ -132,7 +127,7 @@ public class ProcessManager {
 		props.put("bootstrap.servers", brokers);
 		props.put("acks", "all");
 		props.put("retries", 10);
-//		props.put("metadata.broker.list", brokers);
+		props.put("producer.type","sync");
 		props.put("batch.size", 16384);
 		props.put("linger.ms", 1);
 		props.put("buffer.memory", 33554432);
@@ -145,16 +140,6 @@ public class ProcessManager {
 		ProcessBuilder pb = new ProcessBuilder(command);
 		try
 		{
-			TopicManager manager = new TopicManager();
-			manager.createTopic(topic);
-			
-//			Properties props = new Properties();
-//			props.put("metadata.broker.list", "127.0.0.1:9092");
-//			props.put("serializer.class", "kafka.serializer.StringEncoder");
-//			ProducerConfig producerConfig = new ProducerConfig(props);
-//			Producer<String, String> producer = new Producer<String, String>(producerConfig);
-//			KeyedMessage<String, String> message = new KeyedMessage<String, String>(topic, topic+"_rtn");
-			
 			Process process = pb.start();//실행
 			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 			StringBuilder builder = new StringBuilder();
@@ -164,16 +149,21 @@ public class ProcessManager {
 				builder.append(System.getProperty("line.separator"));
 			}
 			String result = builder.toString();
-			System.out.println(topic +":"+ result);
 			
-			Properties props = createProducerConfig("127.0.0.1:9092");
+			TopicManager manager = new TopicManager();
+			topic = topic+"_RTN";
+			manager.createTopic(topic);
+			System.out.println(manager.getTopicList());
+			
+			Properties props = createProducerConfig("localhost:9092");
 			KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
+			System.out.println(">>>"+ topic +":"+ result);
 			producer.send(new ProducerRecord<String, String>(topic, result), new Callback() {
 		        public void onCompletion(RecordMetadata metadata, Exception e) {
 		          if (e != null) {
 		            e.printStackTrace();
 		          }
-		          System.out.println("Sent:" + result + ", Partition: " + metadata.partition() + ", Offset: "
+		          System.out.println("Request Result Sent:" + result + ", Partition: " + metadata.partition() + ", Offset: "
 		              + metadata.offset());
 		        }
 		      });
