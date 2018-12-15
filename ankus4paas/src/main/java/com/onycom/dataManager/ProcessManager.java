@@ -15,6 +15,7 @@ import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.kafka.clients.consumer.CommitFailedException;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -81,16 +82,25 @@ public class ProcessManager {
 			consumer.subscribe(Arrays.asList("MLREQUEST"));
 		    ConsumerRecords<String, String> records = consumer.poll(500);
 		    for (ConsumerRecord<String, String> record : records) {
+		    	System.out.printf("topic = %s, partition = %s, offset = %d, customer = %s, country = %s\n",
+		                			record.topic(), record.partition(),
+		                			record.offset(), record.key(), record.value());
 		      switch (record.topic()) {
 		        case "MLREQUEST":
 		        	Gson gson = new Gson();
 		        	String strInjson = record.value();
+		        	
+		        	try {
+		                consumer.commitSync();
+		            } catch (Exception e) {
+		                System.out.println(e.toString());
+		            }
+		        	
 		        	JsonParser parser = new JsonParser();
 		    		JsonElement element = parser.parse(strInjson);
 		    		
 		    		String appkey = element.getAsJsonObject().get("appkey").getAsString();
-		    		String newTopicName = "MLREQUEST_"+appkey;	    		
-		    		
+		    		String newTopicName = "MLREQUEST_"+appkey;
 		    		String packageName = element.getAsJsonObject().get("packageName").getAsString();
 		    		switch(packageName) {
 			    		case "sh":
@@ -151,7 +161,7 @@ public class ProcessManager {
 			String result = builder.toString();
 			
 			TopicManager manager = new TopicManager();
-			topic = topic+"_RTN";
+			topic = topic+"_RTN1";
 			manager.createTopic(topic);
 			System.out.println(manager.getTopicList());
 			
@@ -159,16 +169,14 @@ public class ProcessManager {
 			KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
 			System.out.println(">>>"+ topic +":"+ result);
 			producer.send(new ProducerRecord<String, String>(topic, result), new Callback() {
-		        public void onCompletion(RecordMetadata metadata, Exception e) {
-		          if (e != null) {
-		            e.printStackTrace();
-		          }
-		          System.out.println("Request Result Sent:" + result + ", Partition: " + metadata.partition() + ", Offset: "
-		              + metadata.offset());
-		        }
-		      });
+				public void onCompletion(RecordMetadata metadata, Exception e) {
+					if (e != null) {
+						e.printStackTrace();
+				}
+				System.out.println("Request Result Sent:" + result + ", Partition: " + metadata.partition() + ", Offset: "+ metadata.offset());
+			}
+			});
 			producer.close();
-
 		}
 		catch(Exception e) {
 			System.out.println(e.toString());

@@ -2,31 +2,20 @@ package AppClient;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
-import java.util.Set;
-
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.onycom.mesagehandler.TopicManager;
-
-import java.util.Properties;
-
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
+
 public class AppRunClient {
 	private static Properties createProducerConfig(String brokers) {
 		Properties props = new Properties();
@@ -44,8 +33,6 @@ public class AppRunClient {
 		String packageName = "sh";
 		TopicManager manager = new TopicManager();
 		manager.createTopic("MLREQUEST");
-		manager.deleteTopic("MLREQUEST_123456789_RTN");
-		manager.deleteTopic("MLREQUEST_123456789");
 		Properties props = createProducerConfig("localhost:9092");
 		KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
 		Gson gson = new Gson();
@@ -59,7 +46,6 @@ public class AppRunClient {
 		System.out.println(functionParmStr);
 		mParam.setFunctionParam(functionParam);
 		String json = gson.toJson(mParam);
-		
 		
 		try {
 			producer.send(new ProducerRecord<String, String>("MLREQUEST", json), new Callback() {
@@ -82,15 +68,17 @@ public class AppRunClient {
 		consummerProper = new ConsummerProper();
 		
 		consumer = consummerProper.getConsumer();
-		consumer.subscribe(Arrays.asList("MLREQUEST_123456789_RTN"));
+		consumer.subscribe(Arrays.asList("MLREQUEST_123456789_RTN1"));
+		boolean bResultReceive = false;
 		try {
-			while(true) {
+			while(bResultReceive == false) {
 				ConsumerRecords<String, String> records = consumer.poll(500);
 				for (ConsumerRecord<String, String> record : records) {
 					switch (record.topic()) {
-					case "MLREQUEST_"+"123456789_RTN":
+					case "MLREQUEST_"+"123456789_RTN1":
 						String strInjson = record.value();
-						System.out.println(strInjson);
+						System.out.println("Result:" + strInjson);
+						bResultReceive = true;
 						break;
 					}
 				}
