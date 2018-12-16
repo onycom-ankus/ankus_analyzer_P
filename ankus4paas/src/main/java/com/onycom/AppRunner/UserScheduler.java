@@ -6,11 +6,10 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
+import org.openankus.ZooKeeperHandler.TopicHandler;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
-
-import com.onycom.mesagehandler.TopicManager;
 
 public class UserScheduler {
 	private ThreadPoolTaskScheduler scheduler;
@@ -48,13 +47,14 @@ public class UserScheduler {
     	/*
     	 * topics을 hashmap에 저장
     	 */
-    	TopicManager manager = new TopicManager();
-		List<String> topics  = manager.getTopicList();
-		for(String topic: topics) {
-			if (topicAtiveHash.containsKey(topic) != true) {
-				topicAtiveHash.put(topic, 0);
-			}
-		}
+    	TopicHandler topicHandler = new TopicHandler();		
+    	
+//		List<String> topics  = topicHandler.getTopicList();
+//		for(String topic: topics) {
+//			if (topicAtiveHash.containsKey(topic) != true) {
+//				topicAtiveHash.put(topic, 0);
+//			}
+//		}
     }
     
     public void consumerExecuter() {

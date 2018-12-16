@@ -15,6 +15,7 @@
 
 package com.onycom.ankus4paas;
 
+import org.openankus.ZooKeeperHandler.ConsummerProper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication; 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -24,8 +25,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import com.onycom.AppRunner.NotificationConsumerThread;
 import com.onycom.AppRunner.UserScheduler;
-import com.onycom.dataManager.ProcessManager;
-import com.onycom.mesagehandler.ConsummerProper; 
+import com.onycom.dataManager.ProcessManager; 
 @SpringBootApplication 
 @ComponentScan
 @EnableScheduling

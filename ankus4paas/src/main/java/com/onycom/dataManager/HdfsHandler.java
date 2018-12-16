@@ -13,8 +13,7 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.bson.Document;
-
-import com.onycom.mesagehandler.TopicManager;
+import org.openankus.ZooKeeperHandler.TopicHandler;
 
 import java.util.Properties;
 public class HdfsHandler {
@@ -54,9 +53,9 @@ public class HdfsHandler {
 	 * path안의 내용을 바이터 배열로 프로듀싱 함..
 	 */
 	private void getFileContents(String requestTopic, String path, String appkey) {
-		TopicManager manager = new TopicManager();
+		TopicHandler topicHandler = new TopicHandler();
 		try {
-			manager.createTopic(requestTopic + "_"+ path);
+			topicHandler.CreateTopic("ankus-analzer-p", requestTopic + "_"+ path);
 		}
 		catch(Exception e) {
 			System.out.println(e.toString());

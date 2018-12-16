@@ -23,6 +23,9 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.openankus.ZooKeeperHandler.ConsummerProper;
+import org.openankus.ZooKeeperHandler.ProducerProper;
+import org.openankus.ZooKeeperHandler.TopicHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -33,9 +36,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.onycom.mesagehandler.ConsummerProper;
-import com.onycom.mesagehandler.ProducerProper;
-import com.onycom.mesagehandler.TopicManager;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -160,11 +160,12 @@ public class ProcessManager {
 			}
 			String result = builder.toString();
 			
-			TopicManager manager = new TopicManager();
-			topic = topic+"_RTN1";
-			manager.createTopic(topic);
-			System.out.println(manager.getTopicList());
-			
+			TopicHandler topicHandler = new TopicHandler();
+			try {
+				topicHandler.CreateTopic("ankus-analzer-p", topic);
+			} catch(Exception e) {
+				System.out.println(e.toString());
+			}
 			Properties props = createProducerConfig("localhost:9092");
 			KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
 			System.out.println(">>>"+ topic +":"+ result);

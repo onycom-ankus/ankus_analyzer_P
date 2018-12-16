@@ -7,6 +7,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.bson.Document;
+
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.google.gson.Gson;
 import com.onycom.dataManager.HdfsHandler;
 import com.onycom.dataManager.ProcessProperty;
-import com.onycom.mesagehandler.TopicManager;
 
 import java.net.URI;
 import java.net.URISyntaxException;
