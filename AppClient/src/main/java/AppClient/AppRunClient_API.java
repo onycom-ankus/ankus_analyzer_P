@@ -18,7 +18,7 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 
-public class AppRunClient {
+public class AppRunClient_API {
 	private static Properties createProducerConfig(String brokers) {
 		Properties props = new Properties();
 		props.put("bootstrap.servers", brokers);
@@ -32,7 +32,7 @@ public class AppRunClient {
 		return props;
 	}
 	
-	static String myAppKey = "f1234569";
+	static String myAppKey = "g1234569";
 	public static void main(String[] args) throws Exception {
 		String packageName = "sh";
 		TopicHandler topicHandler = new TopicHandler();
@@ -71,6 +71,9 @@ public class AppRunClient {
 		}
 		producer.close();
 		
+		while(topicHandler.topicExist("ankus-analzer-p", "MLREQUEST_" + myAppKey) == false) {
+			continue;
+		}
 		
 		int consumerResponseWaitCnt = 0;
 		boolean bResultReceive = false;
