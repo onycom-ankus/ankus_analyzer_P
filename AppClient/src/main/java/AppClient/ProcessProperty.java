@@ -9,7 +9,16 @@ import org.apache.commons.lang3.tuple.Pair;
 public class ProcessProperty {
 	private String appkey;
 	private String packageName;
+	private String functionName;
 	private List<Pair> functionParam;
+	
+	public String getFunctionName() {
+		return functionName;
+	}
+	public void setFunctionName(String functionName) {
+		this.functionName = functionName;
+	}
+	
 	public String getAppkey() {
 		return appkey;
 	}
@@ -33,5 +42,4 @@ public class ProcessProperty {
 		return "ProcessProperty [appkey=" + appkey + ", packageName=" + packageName + ", functionParam=" + functionParam
 				+ "]";
 	}
-	
 }

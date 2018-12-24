@@ -25,7 +25,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import com.onycom.AppRunner.NotificationConsumerThread;
 import com.onycom.AppRunner.UserScheduler;
-import com.onycom.dataManager.ProcessManager; 
+import com.onycom.dataManager.ProcessManager;
+
+import DataService.MongoManager; 
 @SpringBootApplication 
 @ComponentScan
 @EnableScheduling
@@ -38,6 +40,11 @@ public class Application {
 	@Bean
 	ProcessManager processManager() {
 		return new ProcessManager();
+	}
+	
+	@Bean
+	MongoManager mongoManager() {
+		return new MongoManager();
 	}
 	
 //	@Bean

@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
+import java.lang.reflect.Field;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.lang3.tuple.Pair;
@@ -75,7 +75,7 @@ public class ProcessManager {
         return new PeriodicTrigger(1, TimeUnit.SECONDS);
     }
     
-	@SuppressWarnings("deprecation")
+	@SuppressWarnings({ "deprecation", "rawtypes" })
 	public void Process() {
 		while (true) {
 			consumer = consummerProper.getConsumer();
@@ -96,34 +96,42 @@ public class ProcessManager {
 		                System.out.println(e.toString());
 		            }
 		        	
-		        	JsonParser parser = new JsonParser();
-		    		JsonElement element = parser.parse(strInjson);
-		    		
-		    		String appkey = element.getAsJsonObject().get("appkey").getAsString();
-		    		String newTopicName = "MLREQUEST_"+appkey;
-		    		String packageName = element.getAsJsonObject().get("packageName").getAsString();
-		    		switch(packageName) {
-			    		case "sh":
-			    			JsonArray jsonFunParamList = element.getAsJsonObject().get("functionParam").getAsJsonArray();
-				    		for(JsonElement jsunFunParam: jsonFunParamList) {
-				    			JsonObject argument = jsunFunParam.getAsJsonObject();
-				    			String key = argument.get("left").toString().replaceAll("\"", "");
-				    			String value = argument.get("right").toString().replaceAll("\"", "");
-				    			System.out.println(key);
-				    			System.out.println(value);
-				    			List<String> listCommand = new ArrayList<String>();
-				    			listCommand.add(key);
-				    			if (value.length() > 0)
-				    			listCommand.add(value);
-				    			String[] command = listCommand.toArray(new String[0]);
-				    			try {
-				    				System.out.println("cmd:" + listCommand.toString());
-				    				byCommonsExec(newTopicName, command);
-				    			} catch(Exception e) {
-				    				System.out.println(e.toString());
-				    			}
-				    			
-				    		}	
+		        	ProcessProperty processProperty = gson.fromJson(strInjson,ProcessProperty.class);
+		        	
+					String newTopicName = "MLREQUEST_" + processProperty.getAppkey();
+					String packageName =  processProperty.getPackageName();
+					switch(packageName) {
+						case "keras":
+							
+							List<String> listCommand = new ArrayList<String>();
+							String fileName =  processProperty.getFunctionName();
+							listCommand.add("keras_path");
+							listCommand.add(fileName);
+							
+							if ( processProperty.getFunctionParam() != null ) {
+								List<Pair> functionParams = processProperty.getFunctionParam();
+								for (Pair functionParam: functionParams) {
+									String k = functionParam.getLeft().toString();
+									String v = functionParam.getRight().toString();
+									if (v.length() == 0 )
+										listCommand.add(k);
+								}
+							}
+							String[] command = listCommand.toArray(new String[0]);
+							
+							try {
+								byCommonsExec(newTopicName, command); //source keras path, fileName, functionLeft(arg1), functionRight(argValue)
+							} catch(Exception e) {
+								System.out.println(e.toString());
+							}
+							break;
+							
+			    		case "tensorflow":
+			    			
+			    			break;
+			    		case "scikit":
+			    			break;
+			    			
 		    		}
 		    		break;
 		        default:
@@ -150,8 +158,9 @@ public class ProcessManager {
 		ProcessBuilder pb = new ProcessBuilder(command);
 		try
 		{
-			Process process = pb.start();//실행
-			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			Process p = pb.start();//실행
+			
+			BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			StringBuilder builder = new StringBuilder();
 			String line = null;
 			while ( (line = reader.readLine()) != null) {

@@ -6,10 +6,11 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
-import org.bson.Document;
+//
 import org.openankus.ZooKeeperHandler.ConsummerProper;
 import org.openankus.ZooKeeperHandler.TopicHandler;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -42,6 +44,7 @@ import java.util.Properties;
 
 
 @RestController
+@RequestMapping(value = "/api")
 public class DataRequestHandler  extends Configured {
 	
 	private HdfsHandler hdfs;
@@ -65,12 +68,13 @@ public class DataRequestHandler  extends Configured {
 		props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 		return props;
 	}
-	@RequestMapping(value = "runcmd/", method = RequestMethod.POST)
-	public String runcmd(@RequestBody ProcessProperty requestWrapper )  throws Exception {
-		String myAppKey = "g1234569";
+
+	@PostMapping("/runcmd")
+	public String runcmd(@RequestBody ProcessProperty processProperty )  throws Exception {
+		String myAppKey = processProperty.getAppkey();
 		
 		String rtn = "";
-		String packageName = "sh";
+		
 		TopicHandler topicHandler = new TopicHandler();
 		try {
 			topicHandler.CreateTopic("ankus-analzer-p","MLREQUEST"); //Create DA Process Topic with 'MLREQUEST'
@@ -80,16 +84,8 @@ public class DataRequestHandler  extends Configured {
 		Properties props = createProducerConfig("localhost:9092");
 		KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
 		Gson gson = new Gson();
-		ProcessProperty mParam = new ProcessProperty();
-		mParam.setAppkey(myAppKey);
-		mParam.setPackageName(packageName);
-
-		List<Pair> functionParam = new ArrayList<>();
-		functionParam.add(new MutablePair<>("/bin/echo", "ankus_echo1 test"));
-		String functionParmStr =gson.toJson(functionParam);
-		System.out.println(functionParmStr);
-		mParam.setFunctionParam(functionParam);		
-		String json = gson.toJson(mParam);		
+		
+		String json = gson.toJson(processProperty);		
 		try {
 			//json has appkey
 			producer.send(new ProducerRecord<String, String>("MLREQUEST", json), new Callback() {
@@ -125,8 +121,10 @@ public class DataRequestHandler  extends Configured {
 						if (record.topic().toString().equals("MLREQUEST_" + myAppKey)) {
 							String strInjson = record.value();
 							System.out.println("Result:" + strInjson);
+							
 							try {
 								consumer.commitSync();
+								return strInjson;
 							} catch (Exception e) {
 								System.out.println(e.toString());
 							}
@@ -144,6 +142,6 @@ public class DataRequestHandler  extends Configured {
 				consumer.close();
 			}
 		}
-		return rtn;
+		return "";
 	}
 }

@@ -12,29 +12,30 @@ import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.bson.Document;
+//import org.bson.Document;
 import org.openankus.ZooKeeperHandler.TopicHandler;
 
 import java.util.Properties;
 public class HdfsHandler {
 	
 	public String getHdfsDir(String path, String appkey) {
-		Document directory = new Document();
-		try {
-			if (path.equals("root"))
-				path  = "";
-            FileSystem fs = new DistributedFileSystem();
-            String Url = "hdfs://localhost:9000/"+ appkey + "/" + path;
-            fs.initialize(new URI(Url), new Configuration());
-            FileStatus[] status = fs.listStatus(new Path(Url));
-            for (int i = 0; i < status.length; i++) {
-            	 System.out.println(status[i].getPath().toString());
-            	 directory.append(appkey, status[i].getPath().toString());
-            }
-        } catch (Exception ex) {
-            return ex.toString();
-        }
-		return directory.toJson().toString();
+//		Document directory = new Document();
+//		try {
+//			if (path.equals("root"))
+//				path  = "";
+//            FileSystem fs = new DistributedFileSystem();
+//            String Url = "hdfs://localhost:9000/"+ appkey + "/" + path;
+//            fs.initialize(new URI(Url), new Configuration());
+//            FileStatus[] status = fs.listStatus(new Path(Url));
+//            for (int i = 0; i < status.length; i++) {
+//            	 System.out.println(status[i].getPath().toString());
+//            	 directory.append(appkey, status[i].getPath().toString());
+//            }
+//        } catch (Exception ex) {
+//            return ex.toString();
+//        }
+//		return directory.toJson().toString();
+		return "";
 	}
 	private static Properties createProducerConfig(String brokers) {
 		Properties props = new Properties();
