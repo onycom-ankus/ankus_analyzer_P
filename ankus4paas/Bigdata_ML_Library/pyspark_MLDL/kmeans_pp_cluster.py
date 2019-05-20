@@ -206,8 +206,8 @@ if __name__ == "__main__":
     rdr = csv.reader(f)
     for line in rdr:
         if len(line) > 0:
-            object_name = ''.join(line[4:5])
-            input_raw_data_list.append((object_name, np.array(list(map(float, line[0:4])))))
+            object_name = ''.join(line[4:5]) #객체명 인덱스 예)4
+            input_raw_data_list.append((object_name, np.array(list(map(float, line[0:4])))))#벡터 크기 예)0~3 4개
     f.close()
 
     sc = SparkContext(appName="pyspark_kmeans_model")
