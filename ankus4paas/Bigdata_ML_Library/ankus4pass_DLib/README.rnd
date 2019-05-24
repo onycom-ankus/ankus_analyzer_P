@@ -1,0 +1,8 @@
+*설치
+**python setup.py install
+
+*pyspark에서 구동되는 K-Means 알고리즘이 등록되었습니다.
+
+예제)
+/ankus4pass_DLib/ankus4passDALib/example/kmeans_pp_training.py
+/ankus4pass_DLib/ankus4passDALib/example/kmeans_pp_test.py

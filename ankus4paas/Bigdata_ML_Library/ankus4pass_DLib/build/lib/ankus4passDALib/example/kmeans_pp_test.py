@@ -1,34 +1,20 @@
 import yaml
-import numpy as np
-import pickle
 import os
 
-import findspark
-findspark.init()
-
-from operator import add
 from pyspark import SparkContext
 import numpy as np
 import pickle
 import sys
-import time
 import csv
 
-
-
-def get_center(object_point, centers):
-    center_idx = 0
-    closest = [np.inf] * len(centers)
-    for idx in range(len(centers)):
-        for j in range(len(centers[0])):
-            tmp_distence = np.linalg.norm(object_point - centers[idx][j])
-            if tmp_distence < closest[idx]:
-                closest[idx] = tmp_distence
-                center_idx = j
-    return center_idx
+import ankus4passDALib.unsupervised.kmeans_pp_cluster as kmeans_pp_cluster
+import findspark
 
 if __name__ == "__main__":
-    yaml_file = open('etc/spark_config_local.yaml', 'r')
+    bath_path = os.path.dirname(os.path.abspath(__file__))
+    print bath_path
+    yaml_file = open(bath_path + '/etc/spark_config_local.yaml', 'r')
+
     spark_yaml = yaml.load(yaml_file)
     install_path = spark_yaml["spark_env"]
     SPARK_LOCAL_IP = spark_yaml["SPARK_LOCAL_IP"]
@@ -39,9 +25,9 @@ if __name__ == "__main__":
     os.environ["SPARK_LOCAL_IP"] = SPARK_LOCAL_IP
     os.environ["PYSPARK_DRIVER_PYTHON"] = PYSPARK_DRIVER_PYTHON
     os.environ["PYSPARK_DRIVER_PYTHON_OPTS"] = PYSPARK_DRIVER_PYTHON_OPTS
-
+    findspark.init()
     bath_path = os.path.dirname(os.path.abspath(__file__))
-    model_path = bath_path  + '/iris.pkl'
+    model_path = '../iris.pkl'
     input_path = bath_path + '/DataSet/iris.csv'
     if len(sys.argv) == 2:
         model_path = sys.argv[1]
@@ -52,24 +38,34 @@ if __name__ == "__main__":
         print 'Model Path ' , model_path
         print 'Input Path' , input_path
 
+    #model pkl load
     with open(model_path, 'rb') as f:
         centroid = pickle.load(f)
 
+    vector_list = ['sepal_length', 'sepal_width', 'petal_length', 'petal_width']
+    object_name = ['class']
 
     input_raw_data_list = []
-    f = open(input_path, 'r')
-    rdr = csv.reader(f)
-    for line in rdr:
-        if len(line) > 0:
-            object_name = ''.join(line[4:5])
-            input_raw_data_list.append((object_name, np.array(list(map(float, line[0:4])))))
-    f.close()
+    with open(input_path, "r") as f:
+        mycsv = csv.DictReader(f)
+        for row in mycsv:
+            vector_values = []
+            for col in vector_list:
+                vector_values.extend([row[col]])
+            vector_values_np = np.array(list(map(float, vector_values)))
+            for col in object_name:
+                input_raw_data_list.append((row[col], vector_values_np))
 
     sc = SparkContext(appName="pyspark_kmeans_test")
-    rdd = sc.parallelize(input_raw_data_list)
+    rdd = sc.parallelize(input_raw_data_list)  # 'str type object name, numpy vector'
+
     print rdd.take(1)
+
+    cluster = kmeans_pp_cluster
+    kmeans = cluster.kmeans_pp()
+
     group2 = rdd.map(
-        lambda (in_vector): (in_vector[0], 'cluster:' + str(get_center(in_vector[1], centroid)))).collect()
+        lambda (in_vector): (in_vector[0], 'cluster:' + str(kmeans.get_closest_centers(in_vector[1], centroid)))).collect()
     for element in group2:
         print element
 
